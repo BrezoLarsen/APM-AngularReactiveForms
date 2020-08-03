@@ -1,7 +1,28 @@
 import { Component, OnInit } from '@angular/core';
-import { FormGroup, FormControl, FormBuilder, Validators, FormControlName } from '@angular/forms';
+import { FormGroup, FormControl, FormBuilder, Validators, FormControlName, AbstractControl, ValidatorFn } from '@angular/forms';
 
 import { Customer } from './customer';
+
+/* Custom validation for Rating input:
+The validation function always take only one parameter: AbstractControl, the FormControl or FormGroup being validated. 
+For build a validation function with parameters we need to build a factory function.
+A validation function always returns a key and value pair defining the broken validation rule or a null if it is valid. */
+// function ratingRange(c: AbstractControl): { [key: string]: boolean } | null {
+//   if (c.value !== null && (isNaN(c.value) || c.value < 1 || c.value > 5 )) {
+//     return { 'range': true }; // INVALID
+//   }
+//   return null; // VALID
+// }
+
+/* Factory function */
+function ratingRange (min: number, max: number): ValidatorFn { // Returns a Valudation function (ValidatorFn)
+  return (c: AbstractControl): { [key: string]: boolean } | null => {
+    if (c.value !== null && (isNaN(c.value) || c.value < min || c.value > max )) {
+      return { 'range': true }; // INVALID
+    }
+    return null; // VALID
+  }
+}
 
 @Component({
   selector: 'app-customer',
@@ -21,15 +42,9 @@ export class CustomerComponent implements OnInit {
       email: ['', [Validators.required, Validators.email]],
       phone: '',
       notification: 'email',
+      rating: [null, ratingRange(1, 5)],
       sendCatalog: true 
     })
-
-    // this.customerForm = new FormGroup({
-    //   firstName: new FormControl(),
-    //   lastName: new FormControl(),
-    //   email: new FormControl(),
-    //   sendCatalog: new FormControl(true) //check for send catalog is checked 
-    // });
   }
 
   setValue(): void { // setValue requires that we set te value of every FormControl in the form model 
