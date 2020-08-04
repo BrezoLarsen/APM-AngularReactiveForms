@@ -46,6 +46,12 @@ function emailMatcher(c: AbstractControl): { [key: string]: boolean } | null {
 export class CustomerComponent implements OnInit {
   customerForm: FormGroup;
   customer = new Customer();
+  emailMessage: string;
+
+  private validationMessages = {
+    required: 'Please enter your email address',
+    email: 'Please enter a valid email address'
+  }
 
   constructor(private fb: FormBuilder) { }
 
@@ -62,7 +68,16 @@ export class CustomerComponent implements OnInit {
       notification: 'email',
       rating: [null, ratingRange(1, 5)],
       sendCatalog: true 
-    })
+    });
+
+    this.customerForm.get('notification').valueChanges.subscribe( // Start watching for changes
+      value => this.setNotification(value)
+    );
+
+    const emailControl = this.customerForm.get('emailGroup.email');
+    emailControl.valueChanges.subscribe(
+      value => this.setMessage(emailControl)
+    );
   }
 
   setValue(): void { // setValue requires that we set te value of every FormControl in the form model 
@@ -86,6 +101,14 @@ export class CustomerComponent implements OnInit {
     console.log('Saved: ' + JSON.stringify(this.customerForm.value));
   }
 
+  setMessage(c: AbstractControl): void {
+    this.emailMessage = '';
+    if ((c.touched || c.dirty) && c.errors) { // Check when we must show validation messages
+      this.emailMessage = Object.keys(c.errors).map( // We use JS Object.keys method to return an array of validations errors collection keys, this array uses de email as the key
+        key => this.validationMessages[key]).join(' ');
+    }
+  }
+
   // Change validations on the fly: in this case, if the user sets "phone" the field phone is required. If the user changes to "email", the field phone is not required
   setNotification(notifyVia: string): void {
     const phoneControl = this.customerForm.get('phone');
@@ -96,5 +119,6 @@ export class CustomerComponent implements OnInit {
     }
     phoneControl.updateValueAndValidity();
   }
+  // For make this same validation by watching the element instead call a method, check the OnInit()
 }
  
