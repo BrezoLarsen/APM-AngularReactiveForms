@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { FormGroup, FormControl, FormBuilder, Validators, FormControlName, AbstractControl, ValidatorFn } from '@angular/forms';
+import { FormGroup, FormControl, FormBuilder, Validators, FormControlName, AbstractControl, ValidatorFn, FormArray } from '@angular/forms';
 
 import { debounceTime } from 'rxjs/operators';
 
@@ -50,6 +50,10 @@ export class CustomerComponent implements OnInit {
   customer = new Customer();
   emailMessage: string;
 
+  get addressesGroup(): FormArray {
+    return <FormArray>this.customerForm.get('addressesGroup');
+  }
+
   private validationMessages = {
     required: 'Please enter your email address',
     email: 'Please enter a valid email address'
@@ -69,7 +73,8 @@ export class CustomerComponent implements OnInit {
       phone: '',
       notification: 'email',
       rating: [null, ratingRange(1, 5)],
-      sendCatalog: true 
+      sendCatalog: true,
+      addressesGroup: this.fb.array([this.buildAddressBlock()])
     });
 
     this.customerForm.get('notification').valueChanges.subscribe( // Start watching for changes
@@ -111,6 +116,21 @@ export class CustomerComponent implements OnInit {
       this.emailMessage = Object.keys(c.errors).map( // We use JS Object.keys method to return an array of validations errors collection keys, this array uses de email as the key
         key => this.validationMessages[key]).join(' ');
     }
+  }
+
+  buildAddressBlock(): FormGroup {
+    return this.fb.group({
+      addressType: 'home',
+      street1: '',
+      street2: '',
+      city: '',
+      state: '',
+      zip: ''
+    })
+  }
+
+  addAddress(): void {
+    this.addressesGroup.push(this.buildAddressBlock());
   }
 
   // Change validations on the fly: in this case, if the user sets "phone" the field phone is required. If the user changes to "email", the field phone is not required
