@@ -1,6 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { FormGroup, FormControl, FormBuilder, Validators, FormControlName, AbstractControl, ValidatorFn } from '@angular/forms';
 
+import { debounceTime } from 'rxjs/operators';
+
 import { Customer } from './customer';
 
 /* Custom validation for Rating input:
@@ -75,7 +77,9 @@ export class CustomerComponent implements OnInit {
     );
 
     const emailControl = this.customerForm.get('emailGroup.email');
-    emailControl.valueChanges.subscribe(
+    emailControl.valueChanges.pipe(
+      debounceTime(1000)
+    ).subscribe(
       value => this.setMessage(emailControl)
     );
   }
